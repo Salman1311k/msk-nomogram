@@ -137,7 +137,6 @@ input[type=range] {
   position: relative;
   z-index: 2;
 }
-/* Custom track background rendered behind via pseudo */
 .sl-track-wrap::before {
   content: '';
   position: absolute;
@@ -357,7 +356,6 @@ input[type=range]::-moz-range-track { background: transparent; }
   .nom-panel { border-right: none; border-bottom: 1px solid var(--rule); padding: 1.5rem; }
   .header { padding: 1.2rem 1.5rem 1.2rem; }
   
-  /* Font size boosts for mobile readability */
   .batch-credit { font-size: 0.75rem; }
   .panel-label { font-size: 0.75rem; }
   .sl-name { font-size: 0.8rem; }
@@ -523,7 +521,12 @@ input[type=range]::-moz-range-track { background: transparent; }
 // ── CONSTANTS ────────────────────────────────────────────────────────────────
 const B_AGE    = Math.log(1.04);  // 0.03922
 const B_TENURE = Math.log(1.03);  // 0.02956
-const INTERCEPT = -0.489;         // calibrated: mean inputs → 38% MSK prevalence
+
+// CORRECTED CALIBRATION:
+// The average worker (Age 34.7, Tenure 11.7) should reflect the 38% prevalence.
+// logit(0.38) = -0.489. 
+// -0.489 = Intercept + (0.03922 * 34.7) + (0.02956 * 11.7) -> Intercept = -2.196
+const INTERCEPT = -2.196;         
 
 const AGE_MIN = 18, AGE_MAX = 60;
 const TEN_MIN = 1,  TEN_MAX = 40;
@@ -532,6 +535,9 @@ const AGE_MAX_PTS = 42;
 const TEN_MAX_PTS = 30;
 const TOTAL_MAX   = AGE_MAX_PTS + TEN_MAX_PTS; // 72
 const TOTAL_MAX_B = B_AGE * (AGE_MAX - AGE_MIN) + B_TENURE * (TEN_MAX - TEN_MIN);
+
+// Baseline logit when points = 0 (Age 18, Tenure 1)
+const BASE_LOGIT = INTERCEPT + B_AGE * AGE_MIN + B_TENURE * TEN_MIN;
 
 const X0 = 80, X1 = 700, AW = X1 - X0; // 620px
 
@@ -600,17 +606,17 @@ for (let p = 0; p <= TOTAL_MAX; p += 6) {
   if (major) lbl(gTotal, x, 232, String(p));
 }
 
-// PROB axis
+// PROB axis (Adjusted scale)
 const gProb = document.getElementById('g-prob');
-[0.15,0.20,0.25,0.30,0.35,0.40,0.45,0.50,0.55,0.60,0.65,0.70,0.75].forEach(p => {
+[0.20,0.25,0.30,0.35,0.40,0.45,0.50,0.55,0.60,0.65,0.70].forEach(p => {
   const logitP   = Math.log(p / (1 - p));
-  const betaNeed = logitP - INTERCEPT;
+  const betaNeed = logitP - BASE_LOGIT;
   const pts      = (betaNeed / TOTAL_MAX_B) * TOTAL_MAX;
   if (pts < 0 || pts > TOTAL_MAX + 1) return;
   const x     = ptsToX(pts);
   const major = [0.20,0.30,0.40,0.50,0.60,0.70].includes(p);
   tick(gProb, x, 255, major ? 8 : 4, major);
-  if ([0.20,0.30,0.40,0.50,0.60,0.70].includes(p))
+  if (major)
     lbl(gProb, x, 280, Math.round(p*100)+'%', '#9e2a0f');
 });
 
@@ -633,8 +639,8 @@ function update() {
   const tPts  = tenPts(ten);
   const total = aPts + tPts;
 
-  // Probability from logistic model
-  const beta  = B_AGE * (age - AGE_MIN) + B_TENURE * (ten - TEN_MIN);
+  // Corrected Probability from logistic model
+  const beta  = B_AGE * age + B_TENURE * ten;
   const prob  = 1 / (1 + Math.exp(-(INTERCEPT + beta)));
   const pct   = Math.round(prob * 100);
 
@@ -664,20 +670,17 @@ function update() {
     else                           { e.setAttribute('x', xTot); }
   });
 
-  // Labels
   document.getElementById('lbl-age').textContent   = age + 'y';
   document.getElementById('lbl-ten').textContent   = ten + 'y';
   document.getElementById('lbl-total').textContent = Math.round(total) + ' pts';
   document.getElementById('lbl-prob').textContent  = pct + '%';
 
-  // Gauge arc
   const arcLen = 257.6;
   document.getElementById('g-arc').setAttribute('stroke-dasharray',
     (prob * arcLen) + ' ' + ((1 - prob) * arcLen));
   document.getElementById('g-needle').setAttribute('transform',
     `rotate(${-90 + prob * 180},100,95)`);
 
-  // Risk tier
   let cat, col;
   if      (prob < 0.30) { cat = 'Low Risk';      col = '#2a7d4f'; }
   else if (prob < 0.45) { cat = 'Moderate Risk'; col = '#b87800'; }
@@ -689,14 +692,12 @@ function update() {
   document.getElementById('d-pct').style.color = col;
   document.getElementById('d-cat').style.color = col;
 
-  // Breakdown
   document.getElementById('bar-age').style.width = (aPts  / TOTAL_MAX * 100) + '%';
   document.getElementById('bar-ten').style.width = (tPts  / TOTAL_MAX * 100) + '%';
   document.getElementById('p-age').textContent   = Math.round(aPts)  + ' pts';
   document.getElementById('p-ten').textContent   = Math.round(tPts)  + ' pts';
   document.getElementById('p-total').textContent = Math.round(total) + ' / ' + TOTAL_MAX + ' pts';
 
-  // Interpretation
   let msg;
   if (prob < 0.25)
     msg = `A <strong style="color:#2a7d4f">${pct}% Low Risk</strong> profile. Younger age and limited tenure are protective. Standard ergonomic monitoring is sufficient.`;
