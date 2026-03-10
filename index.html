@@ -519,25 +519,22 @@ input[type=range]::-moz-range-track { background: transparent; }
 
 <script>
 // ── CONSTANTS ────────────────────────────────────────────────────────────────
-const B_AGE    = Math.log(1.04);  // 0.03922
-const B_TENURE = Math.log(1.03);  // 0.02956
-
-// CORRECTED CALIBRATION:
-// The average worker (Age 34.7, Tenure 11.7) should reflect the 38% prevalence.
-// logit(0.38) = -0.489. 
-// -0.489 = Intercept + (0.03922 * 34.7) + (0.02956 * 11.7) -> Intercept = -2.196
-const INTERCEPT = -2.196;         
+// Updated to reflect exact SPSS PLUM output parameters
+const B_AGE    = 0.046;
+const B_TENURE = 0.042;
+const INTERCEPT = 2.675;         
 
 const AGE_MIN = 18, AGE_MAX = 60;
 const TEN_MIN = 1,  TEN_MAX = 40;
 
-const AGE_MAX_PTS = 42;
-const TEN_MAX_PTS = 30;
+// Nomogram point allocation scales proportionately to match the new Betas
+const AGE_MAX_PTS = 39;
+const TEN_MAX_PTS = 33;
 const TOTAL_MAX   = AGE_MAX_PTS + TEN_MAX_PTS; // 72
 const TOTAL_MAX_B = B_AGE * (AGE_MAX - AGE_MIN) + B_TENURE * (TEN_MAX - TEN_MIN);
 
-// Baseline logit when points = 0 (Age 18, Tenure 1)
-const BASE_LOGIT = INTERCEPT + B_AGE * AGE_MIN + B_TENURE * TEN_MIN;
+// Baseline beta when inputs are at minimum (Age 18, Tenure 1)
+const BASE_BETA = B_AGE * AGE_MIN + B_TENURE * TEN_MIN;
 
 const X0 = 80, X1 = 700, AW = X1 - X0; // 620px
 
@@ -606,18 +603,20 @@ for (let p = 0; p <= TOTAL_MAX; p += 6) {
   if (major) lbl(gTotal, x, 232, String(p));
 }
 
-// PROB axis (Adjusted scale)
+// PROB axis
 const gProb = document.getElementById('g-prob');
-[0.20,0.25,0.30,0.35,0.40,0.45,0.50,0.55,0.60,0.65,0.70].forEach(p => {
+const probs = [];
+for (let i = 15; i <= 85; i += 5) probs.push(i / 100);
+probs.forEach(p => {
   const logitP   = Math.log(p / (1 - p));
-  const betaNeed = logitP - BASE_LOGIT;
-  const pts      = (betaNeed / TOTAL_MAX_B) * TOTAL_MAX;
-  if (pts < 0 || pts > TOTAL_MAX + 1) return;
+  const betaNeed = INTERCEPT + logitP;
+  const pts      = ((betaNeed - BASE_BETA) / TOTAL_MAX_B) * TOTAL_MAX;
+  if (pts < -2 || pts > TOTAL_MAX + 2) return;
   const x     = ptsToX(pts);
-  const major = [0.20,0.30,0.40,0.50,0.60,0.70].includes(p);
+  const major = (Math.round(p * 100) % 10 === 0);
   tick(gProb, x, 255, major ? 8 : 4, major);
   if (major)
-    lbl(gProb, x, 280, Math.round(p*100)+'%', '#9e2a0f');
+    lbl(gProb, x, 280, Math.round(p * 100) + '%', '#9e2a0f');
 });
 
 // ── UPDATE ───────────────────────────────────────────────────────────────────
@@ -639,9 +638,9 @@ function update() {
   const tPts  = tenPts(ten);
   const total = aPts + tPts;
 
-  // Corrected Probability from logistic model
+  // Probability from SPSS PLUM ordinal logistic model: P(Y > 2)
   const beta  = B_AGE * age + B_TENURE * ten;
-  const prob  = 1 / (1 + Math.exp(-(INTERCEPT + beta)));
+  const prob  = 1 / (1 + Math.exp(INTERCEPT - beta));
   const pct   = Math.round(prob * 100);
 
   const xA   = ptsToX(aPts);
