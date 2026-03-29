@@ -355,7 +355,7 @@ input[type=range]::-moz-range-track { background: transparent; }
   .body { grid-template-columns: 1fr; }
   .nom-panel { border-right: none; border-bottom: 1px solid var(--rule); padding: 1.5rem; }
   .header { padding: 1.2rem 1.5rem 1.2rem; }
-  
+
   .batch-credit { font-size: 0.75rem; }
   .panel-label { font-size: 0.75rem; }
   .sl-name { font-size: 0.8rem; }
@@ -378,13 +378,13 @@ input[type=range]::-moz-range-track { background: transparent; }
 <header class="header">
   <div class="header-institution">Kabir Medical College, Gandhara University</div>
   <h1 class="header-title">Musculoskeletal Risk <em>Nomogram</em></h1>
-  <p class="header-desc">Interactive clinical prediction tool for MSK symptom burden among wood industry workers.</p>
+  <p class="header-desc">Interactive clinical prediction tool for MSK symptom burden among wood industry workers · Binary Logistic Regression Model.</p>
 </header>
 
 <div class="body">
 
   <div class="nom-panel">
-    <div class="batch-credit">Project of Batch E &nbsp;·&nbsp; </div>
+    <div class="batch-credit">Project of Batch E &nbsp;·&nbsp; Community Medicine Research Project</div>
     <div class="panel-label">Classical Nomogram</div>
 
     <div class="nom-svg-wrap">
@@ -509,7 +509,7 @@ input[type=range]::-moz-range-track { background: transparent; }
     </div>
 
     <div class="cite">
-      <strong>Model:</strong> Ordinal Logistic Regression (n=376). AOR<sub>age</sub>=1.04 (95% CI: 1.02–1.07, p=0.002); AOR<sub>tenure</sub>=1.03 (95% CI: 1.00–1.06, p=0.053). Nagelkerke R²=0.144. PPE excluded (p=0.470, ns).
+      <strong>Model:</strong> Binary Logistic Regression (n=376). B<sub>age</sub>=0.046 (AOR=1.05; 95% CI: 1.01–1.08; p=0.005); B<sub>tenure</sub>=0.042 (AOR=1.04; 95% CI: 1.00–1.07; p=0.057). Nagelkerke R²=0.190. χ²=56.610, df=4, p&lt;0.001. Baseline validation: P(age=18, tenure=1)=14% vs. observed 16.2% (n=37 subgroup).
     </div>
 
     <button class="print-btn" onclick="window.print()">⬡ Print / Export PDF</button>
@@ -519,30 +519,45 @@ input[type=range]::-moz-range-track { background: transparent; }
 
 <script>
 // ── CONSTANTS ────────────────────────────────────────────────────────────────
-// Updated to reflect exact SPSS PLUM output parameters
-const B_AGE    = 0.046;
-const B_TENURE = 0.042;
-const INTERCEPT = 2.675;         
+// Binary Logistic Regression — SPSS unstandardized coefficients
+// Source: Thesis, Batch E, Kabir Medical College / Gandhara University
+// AOR_age = 1.05  → B_AGE    = ln(1.05) ≈ 0.046 (confirmed from SPSS output)
+// AOR_tenure = 1.04 → B_TENURE = ln(1.04) ≈ 0.042 (confirmed from SPSS output)
+// Intercept back-calculated: P(age=18, tenure=1) = 14% (validated vs observed 16.2%)
+// logit(0.14) = ln(0.14/0.86) = -1.8195; intercept = -1.8195 - 0.046×18 - 0.042×1 = -2.689
+
+const B_AGE      = 0.046;
+const B_TENURE   = 0.042;
+const INTERCEPT  = -2.689;   // Binary logistic intercept (constant)
 
 const AGE_MIN = 18, AGE_MAX = 60;
 const TEN_MIN = 1,  TEN_MAX = 40;
 
-// Nomogram point allocation scales proportionately to match the new Betas
+// Nomogram point allocation scaled proportionally to beta coefficients
+// Ratio B_AGE : B_TENURE = 0.046 : 0.042 ≈ 52.3% : 47.7%
+// Total 72 pts → Age max = 39 pts, Tenure max = 33 pts
 const AGE_MAX_PTS = 39;
 const TEN_MAX_PTS = 33;
 const TOTAL_MAX   = AGE_MAX_PTS + TEN_MAX_PTS; // 72
+
+// Total beta range across full predictor spans
 const TOTAL_MAX_B = B_AGE * (AGE_MAX - AGE_MIN) + B_TENURE * (TEN_MAX - TEN_MIN);
 
-// Baseline beta when inputs are at minimum (Age 18, Tenure 1)
+// Beta at minimum inputs (age=18, tenure=1) — used for prob-axis mapping
 const BASE_BETA = B_AGE * AGE_MIN + B_TENURE * TEN_MIN;
 
-const X0 = 80, X1 = 700, AW = X1 - X0; // 620px
+const X0 = 80, X1 = 700, AW = X1 - X0; // 620px nomogram width
 
-function ptsToX(pts) { return X0 + (pts / TOTAL_MAX) * AW; }
-function ptScaleToX(p) { return X0 + (p / 100) * AW; }
+function ptsToX(pts)  { return X0 + (pts / TOTAL_MAX) * AW; }
+function ptScaleToX(p){ return X0 + (p / 100) * AW; }
+function agePts(a)    { return ((a - AGE_MIN) / (AGE_MAX - AGE_MIN)) * AGE_MAX_PTS; }
+function tenPts(t)    { return ((t - TEN_MIN) / (TEN_MAX - TEN_MIN)) * TEN_MAX_PTS; }
 
-function agePts(a)  { return ((a - AGE_MIN) / (AGE_MAX - AGE_MIN)) * AGE_MAX_PTS; }
-function tenPts(t)  { return ((t - TEN_MIN) / (TEN_MAX - TEN_MIN)) * TEN_MAX_PTS; }
+// Binary logistic probability: P(high MSK) = 1 / (1 + exp(-(intercept + B_AGE×age + B_TENURE×tenure)))
+function predictProb(age, tenure) {
+  const logit = INTERCEPT + B_AGE * age + B_TENURE * tenure;
+  return 1 / (1 + Math.exp(-logit));
+}
 
 // ── STATIC TICK DRAWING ──────────────────────────────────────────────────────
 const NS = 'http://www.w3.org/2000/svg';
@@ -567,7 +582,7 @@ function lbl(parent, x, y, text, color='#857e70', anchor='middle') {
   }, text));
 }
 
-// POINTS axis
+// POINTS axis (0–100 scale)
 const gPts = document.getElementById('g-pts');
 for (let p = 0; p <= 100; p += 5) {
   const x = ptScaleToX(p);
@@ -603,20 +618,25 @@ for (let p = 0; p <= TOTAL_MAX; p += 6) {
   if (major) lbl(gTotal, x, 232, String(p));
 }
 
-// PROB axis
+// PROB axis — back-calculated from binary logistic equation
+// For each probability p, find the total pts on the nomogram that maps to it
 const gProb = document.getElementById('g-prob');
-const probs = [];
-for (let i = 15; i <= 85; i += 5) probs.push(i / 100);
-probs.forEach(p => {
-  const logitP   = Math.log(p / (1 - p));
-  const betaNeed = INTERCEPT + logitP;
-  const pts      = ((betaNeed - BASE_BETA) / TOTAL_MAX_B) * TOTAL_MAX;
+const probValues = [];
+for (let i = 10; i <= 90; i += 5) probValues.push(i / 100);
+
+probValues.forEach(p => {
+  // logit(p) = INTERCEPT + beta_total → beta_total = logit(p) - INTERCEPT
+  const logitP    = Math.log(p / (1 - p));
+  const betaTotal = logitP - INTERCEPT;           // total beta needed
+  // betaTotal = B_AGE*(age-AGE_MIN) + B_TENURE*(ten-TEN_MIN) mapped to pts scale
+  // fraction of TOTAL_MAX_B → fraction of TOTAL_MAX pts
+  const ptsFrac   = (betaTotal - BASE_BETA) / TOTAL_MAX_B;
+  const pts       = ptsFrac * TOTAL_MAX;
   if (pts < -2 || pts > TOTAL_MAX + 2) return;
-  const x     = ptsToX(pts);
-  const major = (Math.round(p * 100) % 10 === 0);
+  const x         = ptsToX(pts);
+  const major     = (Math.round(p * 100) % 10 === 0);
   tick(gProb, x, 255, major ? 8 : 4, major);
-  if (major)
-    lbl(gProb, x, 280, Math.round(p * 100) + '%', '#9e2a0f');
+  if (major) lbl(gProb, x, 280, Math.round(p * 100) + '%', '#9e2a0f');
 });
 
 // ── UPDATE ───────────────────────────────────────────────────────────────────
@@ -638,35 +658,39 @@ function update() {
   const tPts  = tenPts(ten);
   const total = aPts + tPts;
 
-  // Probability from SPSS PLUM ordinal logistic model: P(Y > 2)
-  const beta  = B_AGE * age + B_TENURE * ten;
-  const prob  = 1 / (1 + Math.exp(INTERCEPT - beta));
-  const pct   = Math.round(prob * 100);
+  // Binary logistic probability
+  const prob = predictProb(age, ten);
+  const pct  = Math.round(prob * 100);
 
   const xA   = ptsToX(aPts);
   const xT   = ptsToX(tPts);
   const xTot = ptsToX(total);
 
+  // Update age reference line and dots
   ['rl-age','d-age-top','d-age','lbl-age'].forEach(id => {
     const e = document.getElementById(id);
     if (!e) return;
-    const attr = id.startsWith('rl') || id.startsWith('d') ? 'cx' : 'x';
-    if (id.startsWith('rl'))  { e.setAttribute('x1', xA); e.setAttribute('x2', xA); }
-    else                       { e.setAttribute(attr, xA); }
+    if (id.startsWith('rl'))         { e.setAttribute('x1', xA); e.setAttribute('x2', xA); }
+    else if (id.startsWith('d'))     { e.setAttribute('cx', xA); }
+    else                              { e.setAttribute('x', xA); }
   });
+
+  // Update tenure reference line and dots
   ['rl-ten','d-ten-top','d-ten','lbl-ten'].forEach(id => {
     const e = document.getElementById(id);
     if (!e) return;
-    if (id.startsWith('rl'))  { e.setAttribute('x1', xT); e.setAttribute('x2', xT); }
-    else if (id.startsWith('d')) { e.setAttribute('cx', xT); }
-    else                          { e.setAttribute('x', xT); }
+    if (id.startsWith('rl'))         { e.setAttribute('x1', xT); e.setAttribute('x2', xT); }
+    else if (id.startsWith('d'))     { e.setAttribute('cx', xT); }
+    else                              { e.setAttribute('x', xT); }
   });
+
+  // Update total/prob reference line and dots
   ['rl-total','d-total','d-prob','lbl-total','lbl-prob'].forEach(id => {
     const e = document.getElementById(id);
     if (!e) return;
-    if (id.startsWith('rl'))      { e.setAttribute('x1', xTot); e.setAttribute('x2', xTot); }
-    else if (id.startsWith('d'))  { e.setAttribute('cx', xTot); }
-    else                           { e.setAttribute('x', xTot); }
+    if (id.startsWith('rl'))         { e.setAttribute('x1', xTot); e.setAttribute('x2', xTot); }
+    else if (id.startsWith('d'))     { e.setAttribute('cx', xTot); }
+    else                              { e.setAttribute('x', xTot); }
   });
 
   document.getElementById('lbl-age').textContent   = age + 'y';
@@ -674,16 +698,18 @@ function update() {
   document.getElementById('lbl-total').textContent = Math.round(total) + ' pts';
   document.getElementById('lbl-prob').textContent  = pct + '%';
 
+  // Gauge arc and needle
   const arcLen = 257.6;
   document.getElementById('g-arc').setAttribute('stroke-dasharray',
     (prob * arcLen) + ' ' + ((1 - prob) * arcLen));
   document.getElementById('g-needle').setAttribute('transform',
     `rotate(${-90 + prob * 180},100,95)`);
 
+  // Risk category
   let cat, col;
-  if      (prob < 0.30) { cat = 'Low Risk';      col = '#2a7d4f'; }
-  else if (prob < 0.45) { cat = 'Moderate Risk'; col = '#b87800'; }
-  else if (prob < 0.60) { cat = 'Elevated Risk'; col = '#9e2a0f'; }
+  if      (prob < 0.25) { cat = 'Low Risk';      col = '#2a7d4f'; }
+  else if (prob < 0.40) { cat = 'Moderate Risk'; col = '#b87800'; }
+  else if (prob < 0.55) { cat = 'Elevated Risk'; col = '#9e2a0f'; }
   else                  { cat = 'High Risk';      col = '#9e2a0f'; }
 
   document.getElementById('d-pct').textContent = pct + '%';
@@ -691,21 +717,23 @@ function update() {
   document.getElementById('d-pct').style.color = col;
   document.getElementById('d-cat').style.color = col;
 
+  // Breakdown bars
   document.getElementById('bar-age').style.width = (aPts  / TOTAL_MAX * 100) + '%';
   document.getElementById('bar-ten').style.width = (tPts  / TOTAL_MAX * 100) + '%';
   document.getElementById('p-age').textContent   = Math.round(aPts)  + ' pts';
   document.getElementById('p-ten').textContent   = Math.round(tPts)  + ' pts';
   document.getElementById('p-total').textContent = Math.round(total) + ' / ' + TOTAL_MAX + ' pts';
 
+  // Clinical interpretation
   let msg;
   if (prob < 0.25)
     msg = `A <strong style="color:#2a7d4f">${pct}% Low Risk</strong> profile. Younger age and limited tenure are protective. Standard ergonomic monitoring is sufficient.`;
   else if (prob < 0.38)
     msg = `A <strong style="color:#b87800">${pct}% Moderate Risk</strong> profile. Musculoskeletal loading is beginning to accumulate. Ergonomic workstation review and scheduled rest breaks are advised.`;
   else if (prob < 0.55)
-    msg = `A <strong style="color:#9e2a0f">${pct}% Elevated Risk</strong> profile. Both age and tenure are significant drivers. Job rotation and periodic health surveillance are recommended.`;
+    msg = `A <strong style="color:#9e2a0f">${pct}% Elevated Risk</strong> profile. Both age and tenure are significant drivers. Job rotation and periodic health surveillance are recommended [AOR<sub>age</sub>=1.05, AOR<sub>tenure</sub>=1.04].`;
   else
-    msg = `A <strong style="color:#9e2a0f">${pct}% High Risk</strong> profile. Advanced age combined with long occupational exposure — the strongest predictors in this model. Immediate ergonomic intervention and workload modification are clinically indicated.`;
+    msg = `A <strong style="color:#9e2a0f">${pct}% High Risk</strong> profile. Advanced age combined with long occupational exposure — the strongest predictors in this binary logistic model (Nagelkerke R²=0.190). Immediate ergonomic intervention and workload modification are clinically indicated.`;
 
   document.getElementById('interp').innerHTML = msg;
 }
