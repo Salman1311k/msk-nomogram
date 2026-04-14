@@ -129,10 +129,10 @@ body::before {
 /* ── HERO ── */
 .hero {
   text-align: center;
-  max-width: 640px;
+  max-width: 680px;
   width: 100%;
   animation: fadeUp 0.9s cubic-bezier(0.16,1,0.3,1) both;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 @keyframes fadeUp {
   from { opacity:0; transform: translateY(28px); }
@@ -148,7 +148,7 @@ body::before {
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--gold);
-  margin-bottom: 1.2rem;
+  margin-bottom: 1rem;
   padding: 0.35rem 0.9rem;
   border: 1px solid rgba(168,130,58,0.25);
   border-radius: 100px;
@@ -162,9 +162,9 @@ body::before {
 
 .hero-title {
   font-family: var(--serif);
-  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-size: clamp(1.4rem, 4vw, 2.5rem); /* Reduced to fit the longer title */
   font-weight: 300;
-  line-height: 1.1;
+  line-height: 1.15;
   letter-spacing: -0.01em;
   margin-bottom: 0.5rem;
 }
@@ -175,18 +175,18 @@ body::before {
 
 .hero-subtitle {
   font-family: var(--serif);
-  font-size: clamp(1rem, 2vw, 1.25rem);
+  font-size: clamp(0.9rem, 1.8vw, 1.15rem);
   font-weight: 300;
   font-style: italic;
   color: var(--muted);
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.2rem;
 }
 
 .hero-divider {
   width: 48px;
   height: 1px;
   background: linear-gradient(to right, transparent, var(--gold), transparent);
-  margin: 0 auto 1.5rem;
+  margin: 0 auto 1.2rem;
 }
 
 /* ── CARDS ── */
@@ -197,7 +197,7 @@ body::before {
   width: 100%;
   max-width: 580px;
   animation: fadeUp 0.9s 0.15s cubic-bezier(0.16,1,0.3,1) both;
-  margin-bottom: 2rem;
+  margin-bottom: 2rem; /* Buffer for the footer */
 }
 
 .card {
@@ -213,7 +213,7 @@ body::before {
   cursor: pointer;
   overflow: hidden;
   transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
-  min-height: 180px;
+  min-height: 170px;
 }
 .card::before {
   content: '';
@@ -325,7 +325,7 @@ body::before {
 .foot-text a:hover { color: var(--gold); }
 
 /* ── MOBILE ── */
-@media (max-width: 520px) {
+@media (max-width: 600px) {
   html, body { overflow: auto; height: auto; } /* Allow scrolling on small screens */
   .wrap { height: auto; min-height: 100vh; padding-bottom: 80px; justify-content: flex-start; margin-top: 80px;}
   .cards { grid-template-columns: 1fr; max-width: 360px; }
@@ -353,9 +353,9 @@ body::before {
   <div class="hero">
     <div class="hero-label">Research Publication</div>
     <h1 class="hero-title">
-      Occupational Health<br>
-      among <em>Wood Industry</em><br>
-      Workers
+      Prevalence and Factors Associated with<br>
+      Occupational Health Problems<br>
+      among <em>Wood Industry</em> Workers
     </h1>
     <p class="hero-subtitle">Hayatabad Industrial Estate, Peshawar</p>
     <div class="hero-divider"></div>
