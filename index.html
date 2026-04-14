@@ -25,11 +25,11 @@
 }
 
 html, body {
-  min-height: 100vh;
+  height: 100vh;
   background: var(--bg);
   color: var(--ink);
   font-family: var(--sans);
-  overflow-x: hidden;
+  overflow: hidden; /* Prevents scrolling */
 }
 
 /* ── GRAIN OVERLAY ── */
@@ -73,12 +73,13 @@ body::before {
 .wrap {
   position: relative;
   z-index: 1;
-  min-height: 100vh;
+  height: calc(100vh - 60px); /* Adjusting for topbar */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3rem 1.5rem 4rem;
+  padding: 0 1.5rem;
+  margin-top: 60px; /* Offset for the fixed topbar */
 }
 
 /* ── TOP BAR ── */
@@ -89,10 +90,11 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.1rem 2.4rem;
+  padding: 1rem 2.4rem;
   border-bottom: 1px solid var(--border);
   background: rgba(253,251,247,0.85);
   backdrop-filter: blur(12px);
+  height: 60px;
 }
 .topbar-left {
   display: flex;
@@ -129,8 +131,8 @@ body::before {
   text-align: center;
   max-width: 640px;
   width: 100%;
-  margin-top: 3rem;
   animation: fadeUp 0.9s cubic-bezier(0.16,1,0.3,1) both;
+  margin-bottom: 1rem;
 }
 @keyframes fadeUp {
   from { opacity:0; transform: translateY(28px); }
@@ -146,7 +148,7 @@ body::before {
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--gold);
-  margin-bottom: 1.6rem;
+  margin-bottom: 1.2rem;
   padding: 0.35rem 0.9rem;
   border: 1px solid rgba(168,130,58,0.25);
   border-radius: 100px;
@@ -160,9 +162,9 @@ body::before {
 
 .hero-title {
   font-family: var(--serif);
-  font-size: clamp(2rem, 5.5vw, 3.4rem);
+  font-size: clamp(2rem, 5vw, 3.2rem);
   font-weight: 300;
-  line-height: 1.12;
+  line-height: 1.1;
   letter-spacing: -0.01em;
   margin-bottom: 0.5rem;
 }
@@ -173,35 +175,19 @@ body::before {
 
 .hero-subtitle {
   font-family: var(--serif);
-  font-size: clamp(1rem, 2.2vw, 1.35rem);
+  font-size: clamp(1rem, 2vw, 1.25rem);
   font-weight: 300;
   font-style: italic;
   color: var(--muted);
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .hero-divider {
   width: 48px;
   height: 1px;
   background: linear-gradient(to right, transparent, var(--gold), transparent);
-  margin: 0 auto 2rem;
+  margin: 0 auto 1.5rem;
 }
-
-.hero-meta {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.5rem 1.6rem;
-  font-family: var(--mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 3.2rem;
-}
-.hero-meta span { display: flex; align-items: center; gap: 0.4rem; }
-.hero-meta span::before { content: '—'; color: var(--gold-d); }
 
 /* ── CARDS ── */
 .cards {
@@ -211,13 +197,14 @@ body::before {
   width: 100%;
   max-width: 580px;
   animation: fadeUp 0.9s 0.15s cubic-bezier(0.16,1,0.3,1) both;
+  margin-bottom: 2rem;
 }
 
 .card {
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 1.8rem 1.6rem 1.6rem;
+  padding: 1.5rem;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--surface);
@@ -226,7 +213,7 @@ body::before {
   cursor: pointer;
   overflow: hidden;
   transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
-  min-height: 210px;
+  min-height: 180px;
 }
 .card::before {
   content: '';
@@ -253,7 +240,7 @@ body::before {
   font-size: 0.54rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  margin-bottom: 1.2rem;
+  margin-bottom: 1rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -269,33 +256,33 @@ body::before {
 .card-results .card-tag::before { background: var(--red); }
 
 .card-icon {
-  font-size: 2rem;
+  font-size: 1.8rem;
   line-height: 1;
-  margin-bottom: 0.9rem;
+  margin-bottom: 0.6rem;
 }
 
 .card-title {
   font-family: var(--serif);
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   font-weight: 400;
   line-height: 1.2;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
 }
 
 .card-desc {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--muted);
-  line-height: 1.6;
+  line-height: 1.5;
   flex: 1;
 }
 
 .card-cta {
-  margin-top: 1.4rem;
+  margin-top: 1rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
   font-family: var(--mono);
-  font-size: 0.6rem;
+  font-size: 0.55rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   transition: gap 0.2s;
@@ -311,16 +298,21 @@ body::before {
 
 /* ── FOOTER ── */
 .foot {
-  position: relative; z-index: 1;
+  position: absolute; 
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
   text-align: center;
-  padding: 1.2rem 2rem;
+  padding: 1rem 2rem;
   border-top: 1px solid var(--border);
+  background: rgba(253,251,247,0.85);
+  backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 1.6rem;
   flex-wrap: wrap;
-  margin-top: 2rem;
 }
 .foot-text {
   font-family: var(--mono);
@@ -334,10 +326,12 @@ body::before {
 
 /* ── MOBILE ── */
 @media (max-width: 520px) {
+  html, body { overflow: auto; height: auto; } /* Allow scrolling on small screens */
+  .wrap { height: auto; min-height: 100vh; padding-bottom: 80px; justify-content: flex-start; margin-top: 80px;}
   .cards { grid-template-columns: 1fr; max-width: 360px; }
   .topbar { padding: 0.9rem 1.2rem; }
   .topbar-right { display: none; }
-  .hero { margin-top: 2rem; }
+  .foot { position: relative; background: transparent; backdrop-filter: none; }
 }
 </style>
 </head>
@@ -365,10 +359,6 @@ body::before {
     </h1>
     <p class="hero-subtitle">Hayatabad Industrial Estate, Peshawar</p>
     <div class="hero-divider"></div>
-    <div class="hero-meta">
-      <span>Cross-Sectional Study</span>
-      <span>Binary Logistic Regression</span>
-    </div>
   </div>
 
   <div class="cards">
