@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wood Industry Workers — Occupational Health Study</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #0e0d0b;
+  --surface:  #161510;
+  --border:   rgba(255,255,255,0.08);
+  --border-h: rgba(255,255,255,0.18);
+  --ink:      #f0ece3;
+  --muted:    rgba(240,236,227,0.38);
+  --gold:     #c8a96e;
+  --gold-d:   #9e7d45;
+  --red:      #c45c3a;
+  --mono:     'DM Mono', monospace;
+  --serif:    'Cormorant Garamond', Georgia, serif;
+  --sans:     'DM Sans', sans-serif;
+}
+
+html, body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  overflow-x: hidden;
+}
+
+/* ── GRAIN OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
+}
+
+/* ── GEOMETRIC ACCENT ── */
+.geo {
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+}
+.geo-circle {
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  border: 1px solid rgba(200,169,110,0.06);
+  top: -180px; right: -180px;
+}
+.geo-circle-2 {
+  width: 300px; height: 300px;
+  border-radius: 50%;
+  border: 1px solid rgba(200,169,110,0.04);
+  top: -80px; right: -80px;
+}
+.geo-line {
+  width: 1px;
+  height: 100vh;
+  background: linear-gradient(to bottom, transparent, rgba(200,169,110,0.08) 40%, transparent);
+  left: calc(50% - 360px);
+  top: 0;
+}
+
+/* ── MAIN WRAPPER ── */
+.wrap {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem 4rem;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 2.4rem;
+  border-bottom: 1px solid var(--border);
+  background: rgba(14,13,11,0.82);
+  backdrop-filter: blur(12px);
+}
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+.topbar-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.4; transform: scale(0.7); }
+}
+.topbar-inst {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.topbar-right {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── HERO ── */
+.hero {
+  text-align: center;
+  max-width: 640px;
+  width: 100%;
+  margin-top: 3rem;
+  animation: fadeUp 0.9s cubic-bezier(0.16,1,0.3,1) both;
+}
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(28px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+.hero-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 1.6rem;
+  padding: 0.35rem 0.9rem;
+  border: 1px solid rgba(200,169,110,0.22);
+  border-radius: 100px;
+}
+.hero-label::before {
+  content: '';
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+
+.hero-title {
+  font-family: var(--serif);
+  font-size: clamp(2rem, 5.5vw, 3.4rem);
+  font-weight: 300;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.5rem;
+}
+.hero-title em {
+  font-style: italic;
+  color: var(--gold);
+}
+
+.hero-subtitle {
+  font-family: var(--serif);
+  font-size: clamp(1rem, 2.2vw, 1.35rem);
+  font-weight: 300;
+  font-style: italic;
+  color: var(--muted);
+  margin-bottom: 2rem;
+}
+
+.hero-divider {
+  width: 48px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--gold), transparent);
+  margin: 0 auto 2rem;
+}
+
+.hero-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.6rem;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 3.2rem;
+}
+.hero-meta span { display: flex; align-items: center; gap: 0.4rem; }
+.hero-meta span::before { content: '—'; color: var(--gold-d); }
+
+/* ── CARDS ── */
+.cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  width: 100%;
+  max-width: 580px;
+  animation: fadeUp 0.9s 0.15s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 1.8rem 1.6rem 1.6rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+  min-height: 210px;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.card-msk::before {
+  background: radial-gradient(ellipse at top left, rgba(200,169,110,0.08), transparent 65%);
+}
+.card-results::before {
+  background: radial-gradient(ellipse at top left, rgba(196,92,58,0.07), transparent 65%);
+}
+.card:hover {
+  border-color: var(--border-h);
+  transform: translateY(-3px);
+  box-shadow: 0 20px 48px rgba(0,0,0,0.4);
+}
+.card:hover::before { opacity: 1; }
+
+.card-tag {
+  font-family: var(--mono);
+  font-size: 0.54rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.card-msk .card-tag    { color: var(--gold); }
+.card-results .card-tag { color: var(--red); }
+
+.card-tag::before {
+  content: '';
+  width: 20px; height: 1px;
+}
+.card-msk .card-tag::before    { background: var(--gold); }
+.card-results .card-tag::before { background: var(--red); }
+
+.card-icon {
+  font-size: 2rem;
+  line-height: 1;
+  margin-bottom: 0.9rem;
+}
+
+.card-title {
+  font-family: var(--serif);
+  font-size: 1.35rem;
+  font-weight: 400;
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+}
+
+.card-desc {
+  font-size: 0.75rem;
+  color: var(--muted);
+  line-height: 1.6;
+  flex: 1;
+}
+
+.card-cta {
+  margin-top: 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: gap 0.2s;
+}
+.card-msk .card-cta    { color: var(--gold); }
+.card-results .card-cta { color: var(--red); }
+.card:hover .card-cta  { gap: 0.8rem; }
+
+.cta-arrow {
+  transition: transform 0.2s;
+}
+.card:hover .cta-arrow { transform: translateX(4px); }
+
+/* ── STATS STRIP ── */
+.stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0 2.4rem;
+  margin-top: 2.8rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+  width: 100%;
+  max-width: 580px;
+  animation: fadeUp 0.9s 0.3s cubic-bezier(0.16,1,0.3,1) both;
+}
+.stat {
+  text-align: center;
+  padding: 0.4rem 0;
+}
+.stat-n {
+  font-family: var(--serif);
+  font-size: 1.9rem;
+  font-weight: 300;
+  color: var(--gold);
+  line-height: 1;
+}
+.stat-n sup {
+  font-size: 0.7em;
+  vertical-align: super;
+}
+.stat-lbl {
+  font-family: var(--mono);
+  font-size: 0.54rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 0.25rem;
+}
+.stat-sep {
+  width: 1px; height: 32px;
+  background: var(--border);
+}
+
+/* ── FOOTER ── */
+.foot {
+  position: relative; z-index: 1;
+  text-align: center;
+  padding: 1.2rem 2rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.6rem;
+  flex-wrap: wrap;
+}
+.foot-text {
+  font-family: var(--mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.foot-text a { color: var(--gold-d); text-decoration: none; }
+.foot-text a:hover { color: var(--gold); }
+
+/* ── MOBILE ── */
+@media (max-width: 520px) {
+  .cards { grid-template-columns: 1fr; max-width: 360px; }
+  .topbar { padding: 0.9rem 1.2rem; }
+  .topbar-right { display: none; }
+  .hero { margin-top: 2rem; }
+  .stats { gap: 1.2rem 1.6rem; }
+  .stat-sep { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Geometric accents -->
+<div class="geo geo-circle"></div>
+<div class="geo geo-circle-2"></div>
+<div class="geo geo-line"></div>
+
+<!-- Top bar -->
+<nav class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-dot"></div>
+    <span class="topbar-inst">Kabir Medical College · Gandhara University</span>
+  </div>
+  <span class="topbar-right">Batch E · 2025–26</span>
+</nav>
+
+<!-- Main content -->
+<main class="wrap">
+  <div class="hero">
+    <div class="hero-label">Research Publication</div>
+    <h1 class="hero-title">
+      Occupational Health<br>
+      among <em>Wood Industry</em><br>
+      Workers
+    </h1>
+    <p class="hero-subtitle">Hayatabad Industrial Estate, Peshawar</p>
+    <div class="hero-divider"></div>
+    <div class="hero-meta">
+      <span>n = 376 Workers</span>
+      <span>Cross-Sectional Study</span>
+      <span>Binary Logistic Regression</span>
+    </div>
+  </div>
+
+  <!-- Two main buttons -->
+  <div class="cards">
+
+    <!-- Card 1: MSK Nomogram -->
+    <a class="card card-msk" href="msk_nomogram_updated.html">
+      <div class="card-tag">Clinical Tool</div>
+      <div class="card-icon">⬡</div>
+      <div class="card-title">MSK Risk<br>Nomogram</div>
+      <div class="card-desc">Interactive prediction tool. Enter age &amp; work tenure to calculate individualized musculoskeletal risk probability.</div>
+      <div class="card-cta">
+        Open Nomogram
+        <span class="cta-arrow">→</span>
+      </div>
+    </a>
+
+    <!-- Card 2: Full Results -->
+    <a class="card card-results" href="results.pdf" target="_blank">
+      <div class="card-tag">Full Data</div>
+      <div class="card-icon">⬢</div>
+      <div class="card-title">Complete<br>Results</div>
+      <div class="card-desc">All regression tables, chi-square analyses, t-tests, Spearman correlations, and prevalence figures from the study.</div>
+      <div class="card-cta">
+        View Results
+        <span class="cta-arrow">→</span>
+      </div>
+    </a>
+
+  </div>
+
+  <!-- Key stats -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-n">38<sup>%</sup></div>
+      <div class="stat-lbl">MSK Pain</div>
+    </div>
+    <div class="stat-sep"></div>
+    <div class="stat">
+      <div class="stat-n">34.8<sup>%</sup></div>
+      <div class="stat-lbl">Resp. Cough</div>
+    </div>
+    <div class="stat-sep"></div>
+    <div class="stat">
+      <div class="stat-n">0.63</div>
+      <div class="stat-lbl">AOR — PPE</div>
+    </div>
+    <div class="stat-sep"></div>
+    <div class="stat">
+      <div class="stat-n">0.190</div>
+      <div class="stat-lbl">Nagelkerke R²</div>
+    </div>
+  </div>
+</main>
+
+<footer class="foot">
+  <span class="foot-text">Supervisor: <a href="#">Dr Rabia Gul</a> · Co-Supervisor: Dr Seema Noor</span>
+  <span class="foot-text">Correspondence: <a href="mailto:Salman1311K@gmail.com">Salman1311K@gmail.com</a></span>
+  <span class="foot-text">Muhammad Salman (2325) · Research Batch Director</span>
+</footer>
+
+</body>
+</html>
